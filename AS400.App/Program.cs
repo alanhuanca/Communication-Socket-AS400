@@ -1,10 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using AS400.Core;
 using AS400.Infrastructure;
@@ -30,24 +25,20 @@ namespace AS400.App
 
             var transactions = new List<string>
             {
-                "ORDER_001,ITEM_A,10",
-                "UPDATE_STATUS_001",
-                "INQUIRY_ACCT_12345",
-                "ORDER_002,ITEM_B,5"
+                "TRAMA_001,DETALLE_TRAMA,VALORES",
+                "TRAMA_002,DETALLE_TRAMA,VALORES",
+                "TRAMA_003,DETALLE_TRAMA,VALORES",
+                "TRAMA_004,DETALLE_TRAMA,VALORES"
             };
 
             var responses = await as400Service.SendMultipleTransactionsAsync(transactions);
+
             Log.Information("--- Resultados de las transacciones ---");
-            if (responses.Count()>0)
+            for (int i = 0; i < transactions.Count; i++)
             {
-                for (int i = 0; i < transactions.Count; i++)
-                {
-                    Log.Information("Transacción enviada: {Transaction}", transactions[i]);
-                    Log.Information("Respuesta recibida: {Response}", responses[i] ?? "FALLÓ");
-                }
+                Log.Information("Transacción enviada: {Transaction}", transactions[i]);
+                Log.Information("Respuesta recibida: {Response}", responses[i] ?? "FALLÓ");
             }
-            
-           
             Log.Information("--- Fin de los resultados ---");
 
             Log.CloseAndFlush();
@@ -58,18 +49,13 @@ namespace AS400.App
                 .UseSerilog((hostingContext, loggerConfiguration) =>
                 {
                     loggerConfiguration
-                        .ReadFrom.Configuration(hostingContext.Configuration) 
+                        .ReadFrom.Configuration(hostingContext.Configuration)
                         .Enrich.FromLogContext();
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    // Leer la configuración
                     services.Configure<ClientSettings>(context.Configuration.GetSection("AS400ClientSettings"));
-
-                    // Registrar servicios
                     services.AddTransient<IAs400Service, ClienteAS400Seguro>();
-
-                    // Asegurar que el logger esté disponible para las clases
                     services.AddLogging(builder =>
                     {
                         builder.AddSerilog();

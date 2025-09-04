@@ -36,14 +36,23 @@ namespace AS400.Infrastructure
                     await client.ConnectAsync(_serverIp, _serverPort);
                     _logger.LogInformation("Conexión TCP establecida para múltiples transacciones.");
 
-                    using (var sslStream = new SslStream(client.GetStream(), false, (sender, certificate, chain, errors) => true))
-                    {
-                        await sslStream.AuthenticateAsClientAsync(_serverIp);
-                        _logger.LogInformation("Conexión encriptada (TLS) establecida.");
+                    //using (var sslStream = new SslStream(client.GetStream(), false, (sender, certificate, chain, errors) => true))
+                    //{
+                    //    await sslStream.AuthenticateAsClientAsync(_serverIp);
+                    //    _logger.LogInformation("Conexión encriptada (TLS) establecida.");
 
+                    //    foreach (var transaction in transactions)
+                    //    {
+                    //        var response = await SendAndReceiveWithRetryAsync(sslStream, transaction);
+                    //        responses.Add(response);
+                    //    }
+                    //}
+                    using (var stream = client.GetStream())
+                    {
+                        _logger.LogInformation("Conexión TCP establecida (no encriptada).");
                         foreach (var transaction in transactions)
                         {
-                            var response = await SendAndReceiveWithRetryAsync(sslStream, transaction);
+                            var response = await SendAndReceiveWithRetryAsync(stream, transaction);
                             responses.Add(response);
                         }
                     }
@@ -56,7 +65,8 @@ namespace AS400.Infrastructure
             return responses;
         }
 
-        private async Task<string> SendAndReceiveWithRetryAsync(SslStream sslStream, string transactionData)
+        //private async Task<string> SendAndReceiveWithRetryAsync(SslStream sslStream, string transactionData)
+        private async Task<string> SendAndReceiveWithRetryAsync(NetworkStream sslStream, string transactionData)
         {
             int retries = 0;
             while (retries < MaxRetries)
