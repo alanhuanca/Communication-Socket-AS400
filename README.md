@@ -1,5 +1,3 @@
-### `README.md`
-```markdown
 # Proyecto Cliente AS/400 (Arquitectura Limpia)
 
 Este proyecto ha sido refactorizado para seguir los principios de la Arquitectura Limpia, con una clara separación de responsabilidades.
